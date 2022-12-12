@@ -41,9 +41,11 @@ namespace LunchnLearnAPI.Controllers
         [Route("{name}")]
         public async Task<IActionResult> GetMeetingByName([FromRoute] string name)
         {
-            //TODO
-            //ERROR CHECKING IF ENTER NAME NOT IN DB
-            return Ok(await _context.Meetings.Where(meeting => meeting.CreatorName.Contains(name)).ToListAsync());
+            if (_context.Meetings.Count(i => i.CreatorName.Contains(name)) > 0)
+            {
+                return Ok(await _context.Meetings.Where(meeting => meeting.CreatorName.Contains(name)).ToListAsync());
+            }
+            return NotFound();
 
         }
 

@@ -2,7 +2,7 @@
 {
     public class UpdateMeeting
     {
-        public string? CreatorName { get; set; }
+        public string CreatorName { get; set; }
         public DateTime? MeetingTime { get; set; }
         public string Topic { get; set; }
         public string Description { get; set; }
