@@ -11,9 +11,9 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace LunchnLearnAPI.Migrations
 {
-    [DbContext(typeof(TestDbContext))]
-    [Migration("20221211111812_Initial")]
-    partial class Initial
+    [DbContext(typeof(LunchandLearnDbContext))]
+    [Migration("20221212012645_InitialMigrate")]
+    partial class InitialMigrate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -25,23 +25,35 @@ namespace LunchnLearnAPI.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
-            modelBuilder.Entity("LunchnLearnAPI.Models.Domain.Employee", b =>
+            modelBuilder.Entity("LunchnLearnAPI.Models.Domain.Meeting", b =>
                 {
-                    b.Property<Guid>("Id")
+                    b.Property<Guid>("MeetingID")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<string>("Name")
+                    b.Property<string>("CreatorName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Description")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("TestString")
+                    b.Property<string>("LinkToSlides")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("MeetingTime")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("TeamsLink")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Topic")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.HasKey("Id");
+                    b.HasKey("MeetingID");
 
-                    b.ToTable("Employees");
+                    b.ToTable("Meetings");
                 });
 #pragma warning restore 612, 618
         }
