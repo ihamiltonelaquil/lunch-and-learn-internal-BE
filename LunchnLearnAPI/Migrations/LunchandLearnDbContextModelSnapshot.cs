@@ -29,6 +29,7 @@ namespace LunchnLearnAPI.Migrations
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("CreatorName")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Description")
@@ -38,7 +39,10 @@ namespace LunchnLearnAPI.Migrations
                     b.Property<string>("LinkToSlides")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<DateTime?>("MeetingTime")
+                    b.Property<DateTime?>("MeetingEnd")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("MeetingStart")
                         .HasColumnType("datetime2");
 
                     b.Property<string>("TeamsLink")

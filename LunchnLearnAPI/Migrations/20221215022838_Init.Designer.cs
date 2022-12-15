@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace LunchnLearnAPI.Migrations
 {
     [DbContext(typeof(LunchandLearnDbContext))]
-    [Migration("20221212012645_InitialMigrate")]
-    partial class InitialMigrate
+    [Migration("20221215022838_Init")]
+    partial class Init
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -32,6 +32,7 @@ namespace LunchnLearnAPI.Migrations
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("CreatorName")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Description")
@@ -41,7 +42,10 @@ namespace LunchnLearnAPI.Migrations
                     b.Property<string>("LinkToSlides")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<DateTime?>("MeetingTime")
+                    b.Property<DateTime?>("MeetingEnd")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("MeetingStart")
                         .HasColumnType("datetime2");
 
                     b.Property<string>("TeamsLink")

@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace LunchnLearnAPI.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialMigrate : Migration
+    public partial class Init : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -16,8 +16,9 @@ namespace LunchnLearnAPI.Migrations
                 columns: table => new
                 {
                     MeetingID = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    CreatorName = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    MeetingTime = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    CreatorName = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    MeetingStart = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    MeetingEnd = table.Column<DateTime>(type: "datetime2", nullable: true),
                     Topic = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Description = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     LinkToSlides = table.Column<string>(type: "nvarchar(max)", nullable: true),

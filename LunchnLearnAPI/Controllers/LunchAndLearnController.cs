@@ -19,14 +19,13 @@ namespace LunchnLearnAPI.Controllers
         }
 
         [HttpGet]
-        [Route("get")]
         public async Task<IActionResult> GetMeetings()
         {
             return Ok(await _context.Meetings.ToListAsync());
         }
 
         [HttpGet]
-        [Route("get/{id:guid}")]
+        [Route("{id:guid}")]
         public async Task<IActionResult> GetMeetingByID([FromRoute] Guid id)
         {
             var meeting = await _context.Meetings.FindAsync(id);
@@ -39,7 +38,7 @@ namespace LunchnLearnAPI.Controllers
         }
 
         [HttpGet]
-        [Route("get/{name}")]
+        [Route("{name}")]
         public async Task<IActionResult> GetMeetingByName([FromRoute] string name)
         {
             if (_context.Meetings.Count(i => i.CreatorName.Contains(name)) > 0)
@@ -50,13 +49,14 @@ namespace LunchnLearnAPI.Controllers
 
         }
 
-        [Route("add")]
+
         [HttpPost]
         public async Task<IActionResult> AddMeeting(AddMeeting meeting)
         {
             var meetingData = new Meeting()
             {
-                MeetingTime = DateTime.Now,
+                MeetingStart = DateTime.Now,
+                MeetingEnd = DateTime.Now,
                 CreatorName = meeting.CreatorName,
                 Description = meeting.Description,
                 Topic = meeting.Topic,
@@ -70,13 +70,15 @@ namespace LunchnLearnAPI.Controllers
         }
 
         [HttpPut]
-        [Route("update/{id:guid}")]
+        [Route("{id:guid}")]
         public async Task<IActionResult> UpdateMeeting([FromRoute] Guid id, UpdateMeeting updateMeeting)
         {
             var meeting = await _context.Meetings.FindAsync(id);
 
             if (meeting != null)
             {
+                meeting.MeetingStart = updateMeeting.MeetingStart;
+                meeting.MeetingEnd = updateMeeting.MeetingEnd;
                 meeting.CreatorName = updateMeeting.CreatorName;
                 meeting.Description = updateMeeting.Description;
                 meeting.Topic = updateMeeting.Topic;
@@ -91,7 +93,7 @@ namespace LunchnLearnAPI.Controllers
         }
 
         [HttpDelete]
-        [Route("delete/{id:guid}")]
+        [Route("{id:guid}")]
         public async Task<IActionResult> DeleteMeetingByID([FromRoute] Guid id)
         {
             var meeting = await _context.Meetings.FindAsync(id);
