@@ -4,6 +4,7 @@ using LunchnLearnAPI.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace LunchnLearnAPI.Migrations
 {
     [DbContext(typeof(LunchandLearnDbContext))]
-    partial class LunchandLearnDbContextModelSnapshot : ModelSnapshot
+    [Migration("20230109035205_init2")]
+    partial class init2
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -47,8 +50,6 @@ namespace LunchnLearnAPI.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("AttachmentId");
-
-                    b.HasIndex("MeetingID");
 
                     b.ToTable("Attachments");
                 });
@@ -86,15 +87,6 @@ namespace LunchnLearnAPI.Migrations
                     b.HasKey("MeetingID");
 
                     b.ToTable("Meetings");
-                });
-
-            modelBuilder.Entity("LunchnLearnAPI.Models.Domain.Attachment", b =>
-                {
-                    b.HasOne("LunchnLearnAPI.Models.Domain.Meeting", "Meeting")
-                        .WithMany()
-                        .HasForeignKey("MeetingID");
-
-                    b.Navigation("Meeting");
                 });
 #pragma warning restore 612, 618
         }

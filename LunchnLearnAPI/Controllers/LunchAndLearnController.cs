@@ -4,6 +4,9 @@ using LunchnLearnAPI.Models.Domain.Meetings;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.WindowsAzure.Storage;
+using Microsoft.WindowsAzure.Storage.Blob;
+using System.IO;
 
 namespace LunchnLearnAPI.Controllers
 {
@@ -49,6 +52,59 @@ namespace LunchnLearnAPI.Controllers
 
         }
 
+
+        [HttpPost]
+        [Route("upload")]
+        public async Task<IActionResult> Upload(IFormFile file)
+        {
+            if (file == null || file.Length <= 0)
+            {
+                return BadRequest("Invalid file");
+            }
+
+            try
+            {
+                // save the file to storage and return a response
+                
+                string connectionString = "DefaultEndpointsProtocol=https;AccountName=lunchandlearnblob;AccountKey=7OPCs2Yxtfz3BzJCnS3tfpNIR2+vJf7Kzx2Km30dFL8kq46zOWF/ZY3PbQ5gOuv/Ib+3IfDS91wg+AStjRYA2Q==;EndpointSuffix=core.windows.net";
+                // Parse the connection string and create a blob client
+                CloudStorageAccount storageAccount = CloudStorageAccount.Parse(connectionString);
+                CloudBlobClient blobClient = storageAccount.CreateCloudBlobClient();
+
+                // Create a container to store the blobs
+                string containerName = "attachments";
+                CloudBlobContainer container = blobClient.GetContainerReference(containerName);
+                await container.CreateIfNotExistsAsync();
+
+                // Create a block blob and upload the file data to it
+                string blobName = DateTime.Now.ToString("O") + " " + file.FileName;
+                Console.WriteLine(blobName);
+                CloudBlockBlob blockBlob = container.GetBlockBlobReference(blobName);
+                using (var fileStream = file.OpenReadStream())
+                {
+                    await blockBlob.UploadFromStreamAsync(fileStream);
+                }
+
+                Console.WriteLine(blockBlob.Uri.ToString());
+                
+                var attachmentData = new Attachment()
+                {
+                    FileName = file.FileName,
+                    BlobName = blobName,
+                    PublicURI = blockBlob.Uri.ToString(),
+                    Meeting = null,
+                };
+
+                await _context.Attachments.AddAsync(attachmentData);
+                await _context.SaveChangesAsync();
+
+                return Ok(attachmentData);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, ex);
+            }
+        }
 
         [HttpPost]
         public async Task<IActionResult> AddMeeting(AddMeeting meeting)
