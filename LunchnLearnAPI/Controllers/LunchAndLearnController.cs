@@ -52,6 +52,21 @@ namespace LunchnLearnAPI.Controllers
 
         }
 
+        [HttpGet]
+        [Route("attachments")]
+        public async Task<IActionResult> GetAttachments([FromRoute] Guid? meetingId)
+        {
+            if(meetingId == null)
+            {
+                return Ok(await _context.Attachments.ToListAsync());
+            }
+            else if (_context.Attachments.Any(i => i.Meeting.Equals(meetingId)))
+            {
+                return Ok(await _context.Attachments.Where(attachment => attachment.Meeting.Equals(meetingId)).ToListAsync());
+            }
+            return NotFound();
+        } 
+
 
         [HttpPost]
         [Route("upload")]
@@ -77,8 +92,11 @@ namespace LunchnLearnAPI.Controllers
                 await container.CreateIfNotExistsAsync();
 
                 // Create a block blob and upload the file data to it
-                string blobName = DateTime.Now.ToString("O") + " " + file.FileName;
+                DateTime now = DateTime.Now;
+                string blobName = now.ToString("O") + " " + file.FileName;
+                string fileType = Path.GetExtension(file.FileName);
                 Console.WriteLine(blobName);
+                Console.WriteLine(fileType);
                 CloudBlockBlob blockBlob = container.GetBlockBlobReference(blobName);
                 using (var fileStream = file.OpenReadStream())
                 {
@@ -86,11 +104,14 @@ namespace LunchnLearnAPI.Controllers
                 }
 
                 Console.WriteLine(blockBlob.Uri.ToString());
+                Console.WriteLine(blockBlob.BlobType.ToString());
                 
                 var attachmentData = new Attachment()
                 {
                     FileName = file.FileName,
                     BlobName = blobName,
+                    FileType = fileType,
+                    UploadDate = now,
                     PublicURI = blockBlob.Uri.ToString(),
                     Meeting = null,
                 };
