@@ -10,6 +10,7 @@ using System.IO;
 
 namespace LunchnLearnAPI.Controllers
 {
+
     [Route("api/[controller]")]
     [ApiController]
     public class LunchAndLearnController : ControllerBase
@@ -53,35 +54,43 @@ namespace LunchnLearnAPI.Controllers
         }
 
         [HttpGet]
-        [Route("attachments")]
+        [Route("attachments/{meetingId:guid}")]
         public async Task<IActionResult> GetAttachments([FromRoute] Guid? meetingId)
         {
-            if(meetingId == null)
+            if (_context.Attachments.Any(i => i.Meeting.MeetingID.Equals(meetingId)))
             {
-                return Ok(await _context.Attachments.ToListAsync());
-            }
-            else if (_context.Attachments.Any(i => i.Meeting.Equals(meetingId)))
-            {
-                return Ok(await _context.Attachments.Where(attachment => attachment.Meeting.Equals(meetingId)).ToListAsync());
+                return Ok(await _context.Attachments.Include(i => i.Meeting).Where(attachment => attachment.Meeting.MeetingID.Equals(meetingId)).ToListAsync());
             }
             return NotFound();
-        } 
+        }
 
+        [HttpGet]
+        [Route("attachments")]
+        public async Task<IActionResult> GetAttachments()
+        {
+                return Ok(await _context.Attachments.Include(i => i.Meeting).ToListAsync());
+        }
 
         [HttpPost]
         [Route("upload")]
-        public async Task<IActionResult> Upload(IFormFile file)
+        public async Task<IActionResult> Upload(IFormFile file, Guid meetingId)
         {
             if (file == null || file.Length <= 0)
             {
                 return BadRequest("Invalid file");
             }
 
+            Meeting meeting = _context.Meetings.Find(meetingId);
+            if (meeting == null)
+            {
+                return BadRequest("Invalid meeting!");
+            }
+
             try
             {
                 // save the file to storage and return a response
                 
-                string connectionString = "DefaultEndpointsProtocol=https;AccountName=lunchandlearnblob;AccountKey=7OPCs2Yxtfz3BzJCnS3tfpNIR2+vJf7Kzx2Km30dFL8kq46zOWF/ZY3PbQ5gOuv/Ib+3IfDS91wg+AStjRYA2Q==;EndpointSuffix=core.windows.net";
+                string connectionString = Globals.BLOB_CONNECTION_STRING;
                 // Parse the connection string and create a blob client
                 CloudStorageAccount storageAccount = CloudStorageAccount.Parse(connectionString);
                 CloudBlobClient blobClient = storageAccount.CreateCloudBlobClient();
@@ -93,7 +102,7 @@ namespace LunchnLearnAPI.Controllers
 
                 // Create a block blob and upload the file data to it
                 DateTime now = DateTime.Now;
-                string blobName = now.ToString("O") + " " + file.FileName;
+                string blobName = now.ToString("u") + " " + file.FileName;
                 string fileType = Path.GetExtension(file.FileName);
                 Console.WriteLine(blobName);
                 Console.WriteLine(fileType);
@@ -113,7 +122,7 @@ namespace LunchnLearnAPI.Controllers
                     FileType = fileType,
                     UploadDate = now,
                     PublicURI = blockBlob.Uri.ToString(),
-                    Meeting = null,
+                    Meeting = meeting,
                 };
 
                 await _context.Attachments.AddAsync(attachmentData);
@@ -183,6 +192,40 @@ namespace LunchnLearnAPI.Controllers
                 return Ok(meeting);
             }
             return NotFound();
+        }
+        
+        [HttpDelete]
+        [Route("attachments/{attachmentId:guid}")]
+        public async Task<IActionResult> DeleteAttachmentByID([FromRoute] Guid attachmentId)
+        {
+            if (_context.Attachments.Any(i => i.AttachmentId.Equals(attachmentId)))
+            {
+                Attachment attachment = _context.Attachments.Find(attachmentId);
+                string connectionString = Globals.BLOB_CONNECTION_STRING;
+                CloudStorageAccount storageAccount = CloudStorageAccount.Parse(connectionString);
+                CloudBlobClient blobClient = storageAccount.CreateCloudBlobClient();
+
+                string containerName = "attachments";
+                CloudBlobContainer container = blobClient.GetContainerReference(containerName);
+
+                CloudBlockBlob blockBlob = container.GetBlockBlobReference(attachment.BlobName);
+                if(await blockBlob.ExistsAsync())
+                {
+                    if (await blockBlob.DeleteIfExistsAsync())
+                    {
+                        _context.Attachments.Remove(attachment);
+                        await _context.SaveChangesAsync();
+                    }
+                    else
+                        return NotFound("Unable to delete file in blob storage");
+                }
+                else
+                    return NotFound("Unable to locate file in blob storage");
+
+                return Ok(attachment);
+            }
+            else
+                return BadRequest("Invalid attachment");
         }
     }
 }
