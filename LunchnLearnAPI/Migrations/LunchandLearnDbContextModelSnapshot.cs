@@ -57,39 +57,11 @@ namespace LunchnLearnAPI.Migrations
                     b.ToTable("Attachments");
                 });
 
-            modelBuilder.Entity("LunchnLearnAPI.Models.Domain.Link", b =>
-                {
-                    b.Property<Guid>("linkId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<Guid>("MeetingID")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<string>("linkName")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("linkUrl")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("linkId");
-
-                    b.HasIndex("MeetingID");
-
-                    b.ToTable("Links");
-                });
-
             modelBuilder.Entity("LunchnLearnAPI.Models.Domain.Meeting", b =>
                 {
                     b.Property<Guid>("MeetingID")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
-
-                    b.Property<string>("AuthID")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("CreatorName")
                         .IsRequired()
@@ -129,17 +101,6 @@ namespace LunchnLearnAPI.Migrations
                         .IsRequired();
 
                     b.Navigation("Meeting");
-                });
-
-            modelBuilder.Entity("LunchnLearnAPI.Models.Domain.Link", b =>
-                {
-                    b.HasOne("LunchnLearnAPI.Models.Domain.Meeting", "meeting")
-                        .WithMany()
-                        .HasForeignKey("MeetingID")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("meeting");
                 });
 #pragma warning restore 612, 618
         }

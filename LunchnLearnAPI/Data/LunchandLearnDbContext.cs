@@ -11,7 +11,6 @@ namespace LunchnLearnAPI.Data
         }
 
         public DbSet<Meeting> Meetings { get; set; }
-        public DbSet<Link> Links { get; set; }
         public DbSet<Attachment> Attachments { get; set; }
     }
 }
