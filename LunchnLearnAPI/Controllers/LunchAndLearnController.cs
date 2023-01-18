@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
+using System.ComponentModel.DataAnnotations;
 using System.IO;
 
 namespace LunchnLearnAPI.Controllers
@@ -68,7 +69,7 @@ namespace LunchnLearnAPI.Controllers
         [Route("attachments")]
         public async Task<IActionResult> GetAttachments()
         {
-                return Ok(await _context.Attachments.Include(i => i.Meeting).ToListAsync());
+            return Ok(await _context.Attachments.Include(i => i.Meeting).ToListAsync());
         }
 
         [HttpPost]
@@ -89,7 +90,7 @@ namespace LunchnLearnAPI.Controllers
             try
             {
                 // save the file to storage and return a response
-                
+
                 string connectionString = Globals.BLOB_CONNECTION_STRING;
                 // Parse the connection string and create a blob client
                 CloudStorageAccount storageAccount = CloudStorageAccount.Parse(connectionString);
@@ -114,7 +115,7 @@ namespace LunchnLearnAPI.Controllers
 
                 Console.WriteLine(blockBlob.Uri.ToString());
                 Console.WriteLine(blockBlob.BlobType.ToString());
-                
+
                 var attachmentData = new Attachment()
                 {
                     FileName = file.FileName,
@@ -137,10 +138,35 @@ namespace LunchnLearnAPI.Controllers
         }
 
         [HttpPost]
+        [Route("addLink")]
+        public async Task<IActionResult> AddLink(string url, string? urlName, [Required] Guid meetingID)
+        {
+            var linkData = new Link()
+            {
+                linkUrl = url,
+                linkName = (urlName == null ? url : urlName),
+                meeting = await _context.Meetings.FindAsync(meetingID),
+            };
+
+            await _context.Links.AddAsync(linkData);
+            await _context.SaveChangesAsync();
+
+            return Ok(linkData);
+        }
+
+        [HttpGet]
+        [Route("getLinks")]
+        public async Task<IActionResult> GetLinks()
+        {
+            return Ok(await _context.Links.ToListAsync());
+        }
+
+        [HttpPost]
         public async Task<IActionResult> AddMeeting(AddMeeting meeting)
         {
             var meetingData = new Meeting()
             {
+                AuthID = meeting.AuthID,
                 MeetingStart = DateTime.Now,
                 MeetingEnd = DateTime.Now,
                 CreatorName = meeting.CreatorName,
@@ -193,7 +219,7 @@ namespace LunchnLearnAPI.Controllers
             }
             return NotFound();
         }
-        
+
         [HttpDelete]
         [Route("attachments/{attachmentId:guid}")]
         public async Task<IActionResult> DeleteAttachmentByID([FromRoute] Guid attachmentId)
@@ -209,7 +235,7 @@ namespace LunchnLearnAPI.Controllers
                 CloudBlobContainer container = blobClient.GetContainerReference(containerName);
 
                 CloudBlockBlob blockBlob = container.GetBlockBlobReference(attachment.BlobName);
-                if(await blockBlob.ExistsAsync())
+                if (await blockBlob.ExistsAsync())
                 {
                     if (await blockBlob.DeleteIfExistsAsync())
                     {

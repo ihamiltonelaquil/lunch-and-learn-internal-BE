@@ -3,6 +3,7 @@
     public class Meeting
     {
         public Guid MeetingID { get; set; }
+        public string AuthID { get; set; }
         public string CreatorName { get; set; }
         public DateTime? MeetingStart { get; set; }
         public DateTime? MeetingEnd { get; set; }
