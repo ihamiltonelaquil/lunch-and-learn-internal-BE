@@ -141,6 +141,7 @@ namespace LunchnLearnAPI.Controllers
         {
             var meetingData = new Meeting()
             {
+                AuthID = meeting.AuthID,
                 MeetingStart = DateTime.Now,
                 MeetingEnd = DateTime.Now,
                 CreatorName = meeting.CreatorName,
