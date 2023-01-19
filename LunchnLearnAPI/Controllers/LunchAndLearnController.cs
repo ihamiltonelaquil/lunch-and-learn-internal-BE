@@ -10,7 +10,6 @@ using System.IO;
 
 namespace LunchnLearnAPI.Controllers
 {
-
     [Route("api/[controller]")]
     [ApiController]
     public class LunchAndLearnController : ControllerBase
@@ -21,19 +20,39 @@ namespace LunchnLearnAPI.Controllers
         {
             _context = context;
         }
-
+        
         [HttpGet]
         public async Task<IActionResult> GetMeetings()
         {
             return Ok(await _context.Meetings.ToListAsync());
         }
 
+        [Route("/api/[controller]/link")]
+        [HttpGet]
+        public async Task<IActionResult> GetLinks()
+        {
+            return Ok(await _context.Links.Include(meeting => meeting.Meeting).ToListAsync());
+        }
+
+        [Route("/api/[controller]/link/{meetingID:guid}")]
+        [HttpGet]
+        public async Task<IActionResult> GetLinkByID(Guid meetingID)
+        {
+            Meeting meeting = await _context.Meetings.FindAsync(meetingID);
+            if (meeting == null)
+            {
+                return NotFound();
+            }
+
+            return Ok(await _context.Links.Where(meeting => meeting.Meeting.MeetingID == meetingID).ToListAsync());
+        }
+
+
         [HttpGet]
         [Route("{id:guid}")]
         public async Task<IActionResult> GetMeetingByID([FromRoute] Guid id)
         {
             var meeting = await _context.Meetings.FindAsync(id);
-
             if (meeting != null)
             {
                 return Ok(await _context.Meetings.Where(meeting => meeting.MeetingID == id).ToListAsync());
@@ -50,7 +69,13 @@ namespace LunchnLearnAPI.Controllers
                 return Ok(await _context.Meetings.Where(meeting => meeting.CreatorName.Contains(name)).ToListAsync());
             }
             return NotFound();
+        }
 
+        [HttpGet]
+        [Route("users")]
+        public async Task<IActionResult> GetAllUsers()
+        {
+            return Ok(await _context.Users.ToListAsync());
         }
 
         [HttpGet]
@@ -68,7 +93,7 @@ namespace LunchnLearnAPI.Controllers
         [Route("attachments")]
         public async Task<IActionResult> GetAttachments()
         {
-                return Ok(await _context.Attachments.Include(i => i.Meeting).ToListAsync());
+            return Ok(await _context.Attachments.Include(i => i.Meeting).ToListAsync());
         }
 
         [HttpPost]
@@ -89,7 +114,7 @@ namespace LunchnLearnAPI.Controllers
             try
             {
                 // save the file to storage and return a response
-                
+
                 string connectionString = Globals.BLOB_CONNECTION_STRING;
                 // Parse the connection string and create a blob client
                 CloudStorageAccount storageAccount = CloudStorageAccount.Parse(connectionString);
@@ -114,7 +139,7 @@ namespace LunchnLearnAPI.Controllers
 
                 Console.WriteLine(blockBlob.Uri.ToString());
                 Console.WriteLine(blockBlob.BlobType.ToString());
-                
+
                 var attachmentData = new Attachment()
                 {
                     FileName = file.FileName,
@@ -147,13 +172,32 @@ namespace LunchnLearnAPI.Controllers
                 CreatorName = meeting.CreatorName,
                 Description = meeting.Description,
                 Topic = meeting.Topic,
-                LinkToSlides = meeting.LinkToSlides,
-                TeamsLink = meeting.TeamsLink,
             };
             await _context.Meetings.AddAsync(meetingData);
             await _context.SaveChangesAsync();
 
             return Ok(meetingData);
+        }
+
+        [Route("/api/[controller]/link/{meetingID:guid}")]
+        [HttpPost]
+        public async Task<IActionResult> AddLink([FromRoute] Guid meetingID, string linkURL)
+        {
+            Meeting meeting = await _context.Meetings.FindAsync(meetingID);
+            if (meeting == null)
+            {
+                return BadRequest("Invalid meeting!");
+            }
+
+            var Link = new LinkContainer()
+            {
+                Link = linkURL,
+                Meeting = meeting
+            };
+            await _context.Links.AddAsync(Link);
+            await _context.SaveChangesAsync();
+
+            return Ok(Link);
         }
 
         [HttpPut]
@@ -169,8 +213,6 @@ namespace LunchnLearnAPI.Controllers
                 meeting.CreatorName = updateMeeting.CreatorName;
                 meeting.Description = updateMeeting.Description;
                 meeting.Topic = updateMeeting.Topic;
-                meeting.TeamsLink = updateMeeting.TeamsLink;
-                meeting.LinkToSlides = updateMeeting.LinkToSlides;
 
                 await _context.SaveChangesAsync();
 
@@ -194,7 +236,7 @@ namespace LunchnLearnAPI.Controllers
             }
             return NotFound();
         }
-        
+
         [HttpDelete]
         [Route("attachments/{attachmentId:guid}")]
         public async Task<IActionResult> DeleteAttachmentByID([FromRoute] Guid attachmentId)
@@ -210,7 +252,7 @@ namespace LunchnLearnAPI.Controllers
                 CloudBlobContainer container = blobClient.GetContainerReference(containerName);
 
                 CloudBlockBlob blockBlob = container.GetBlockBlobReference(attachment.BlobName);
-                if(await blockBlob.ExistsAsync())
+                if (await blockBlob.ExistsAsync())
                 {
                     if (await blockBlob.DeleteIfExistsAsync())
                     {

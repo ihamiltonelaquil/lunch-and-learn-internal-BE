@@ -4,6 +4,7 @@ using LunchnLearnAPI.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace LunchnLearnAPI.Migrations
 {
     [DbContext(typeof(LunchandLearnDbContext))]
-    partial class LunchandLearnDbContextModelSnapshot : ModelSnapshot
+    [Migration("20230119014201_added-links")]
+    partial class addedlinks
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -95,11 +98,17 @@ namespace LunchnLearnAPI.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("LinkToSlides")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<DateTime?>("MeetingEnd")
                         .HasColumnType("datetime2");
 
                     b.Property<DateTime?>("MeetingStart")
                         .HasColumnType("datetime2");
+
+                    b.Property<string>("TeamsLink")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Topic")
                         .IsRequired()
@@ -108,23 +117,6 @@ namespace LunchnLearnAPI.Migrations
                     b.HasKey("MeetingID");
 
                     b.ToTable("Meetings");
-                });
-
-            modelBuilder.Entity("LunchnLearnAPI.Models.Domain.Users", b =>
-                {
-                    b.Property<string>("AuthID")
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<string>("FirstName")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("LastName")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("AuthID");
-
-                    b.ToTable("Users");
                 });
 
             modelBuilder.Entity("LunchnLearnAPI.Models.Domain.Attachment", b =>
@@ -140,13 +132,13 @@ namespace LunchnLearnAPI.Migrations
 
             modelBuilder.Entity("LunchnLearnAPI.Models.Domain.LinkContainer", b =>
                 {
-                    b.HasOne("LunchnLearnAPI.Models.Domain.Meeting", "Meeting")
+                    b.HasOne("LunchnLearnAPI.Models.Domain.Meeting", "meeting")
                         .WithMany()
                         .HasForeignKey("MeetingID")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Meeting");
+                    b.Navigation("meeting");
                 });
 #pragma warning restore 612, 618
         }
