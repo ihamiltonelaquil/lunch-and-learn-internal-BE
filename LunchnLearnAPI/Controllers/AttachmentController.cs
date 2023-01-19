@@ -1,96 +1,40 @@
 ﻿using LunchnLearnAPI.Data;
 using LunchnLearnAPI.Models.Domain;
-using LunchnLearnAPI.Models.Domain.Meetings;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
-using System.IO;
 
 namespace LunchnLearnAPI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class LunchAndLearnController : ControllerBase
+    public class AttachmentController : ControllerBase
     {
         private readonly LunchandLearnDbContext _context;
 
-        public LunchAndLearnController(LunchandLearnDbContext context)
+        public AttachmentController(LunchandLearnDbContext context)
         {
             _context = context;
         }
-        
-        [HttpGet]
-        public async Task<IActionResult> GetMeetings()
-        {
-            return Ok(await _context.Meetings.ToListAsync());
-        }
-
-        [Route("/api/[controller]/link")]
-        [HttpGet]
-        public async Task<IActionResult> GetLinks()
-        {
-            return Ok(await _context.Links.Include(meeting => meeting.Meeting).ToListAsync());
-        }
-
-        [Route("/api/[controller]/link/{meetingID:guid}")]
-        [HttpGet]
-        public async Task<IActionResult> GetLinkByID(Guid meetingID)
-        {
-            Meeting meeting = await _context.Meetings.FindAsync(meetingID);
-            if (meeting == null)
-            {
-                return NotFound();
-            }
-
-            return Ok(await _context.Links.Where(meeting => meeting.Meeting.MeetingID == meetingID).ToListAsync());
-        }
-
 
         [HttpGet]
-        [Route("{id:guid}")]
-        public async Task<IActionResult> GetMeetingByID([FromRoute] Guid id)
-        {
-            var meeting = await _context.Meetings.FindAsync(id);
-            if (meeting != null)
-            {
-                return Ok(await _context.Meetings.Where(meeting => meeting.MeetingID == id).ToListAsync());
-            }
-            return NotFound();
-        }
-
-        [HttpGet]
-        [Route("{name}")]
-        public async Task<IActionResult> GetMeetingByName([FromRoute] string name)
-        {
-            if (_context.Meetings.Count(i => i.CreatorName.Contains(name)) > 0)
-            {
-                return Ok(await _context.Meetings.Where(meeting => meeting.CreatorName.Contains(name)).ToListAsync());
-            }
-            return NotFound();
-        }
-
-        [HttpGet]
-        [Route("users")]
-        public async Task<IActionResult> GetAllUsers()
-        {
-            return Ok(await _context.Users.ToListAsync());
-        }
-
-        [HttpGet]
-        [Route("attachments/{meetingId:guid}")]
+        [Route("{meetingId:guid}")]
         public async Task<IActionResult> GetAttachments([FromRoute] Guid? meetingId)
         {
             if (_context.Attachments.Any(i => i.Meeting.MeetingID.Equals(meetingId)))
             {
-                return Ok(await _context.Attachments.Include(i => i.Meeting).Where(attachment => attachment.Meeting.MeetingID.Equals(meetingId)).ToListAsync());
+                return Ok(
+                    await _context.Attachments
+                        .Include(i => i.Meeting)
+                        .Where(attachment => attachment.Meeting.MeetingID.Equals(meetingId))
+                        .ToListAsync()
+                );
             }
             return NotFound();
         }
 
         [HttpGet]
-        [Route("attachments")]
         public async Task<IActionResult> GetAttachments()
         {
             return Ok(await _context.Attachments.Include(i => i.Meeting).ToListAsync());
@@ -161,84 +105,8 @@ namespace LunchnLearnAPI.Controllers
             }
         }
 
-        [HttpPost]
-        public async Task<IActionResult> AddMeeting(AddMeeting meeting)
-        {
-            var meetingData = new Meeting()
-            {
-                AuthID = meeting.AuthID,
-                MeetingStart = DateTime.Now,
-                MeetingEnd = DateTime.Now,
-                CreatorName = meeting.CreatorName,
-                Description = meeting.Description,
-                Topic = meeting.Topic,
-            };
-            await _context.Meetings.AddAsync(meetingData);
-            await _context.SaveChangesAsync();
-
-            return Ok(meetingData);
-        }
-
-        [Route("/api/[controller]/link/{meetingID:guid}")]
-        [HttpPost]
-        public async Task<IActionResult> AddLink([FromRoute] Guid meetingID, string linkURL)
-        {
-            Meeting meeting = await _context.Meetings.FindAsync(meetingID);
-            if (meeting == null)
-            {
-                return BadRequest("Invalid meeting!");
-            }
-
-            var Link = new LinkContainer()
-            {
-                Link = linkURL,
-                Meeting = meeting
-            };
-            await _context.Links.AddAsync(Link);
-            await _context.SaveChangesAsync();
-
-            return Ok(Link);
-        }
-
-        [HttpPut]
-        [Route("{id:guid}")]
-        public async Task<IActionResult> UpdateMeeting([FromRoute] Guid id, UpdateMeeting updateMeeting)
-        {
-            var meeting = await _context.Meetings.FindAsync(id);
-
-            if (meeting != null)
-            {
-                meeting.MeetingStart = updateMeeting.MeetingStart;
-                meeting.MeetingEnd = updateMeeting.MeetingEnd;
-                meeting.CreatorName = updateMeeting.CreatorName;
-                meeting.Description = updateMeeting.Description;
-                meeting.Topic = updateMeeting.Topic;
-
-                await _context.SaveChangesAsync();
-
-                return Ok(meeting);
-            }
-            return NotFound();
-        }
-
         [HttpDelete]
-        [Route("{id:guid}")]
-        public async Task<IActionResult> DeleteMeetingByID([FromRoute] Guid id)
-        {
-            var meeting = await _context.Meetings.FindAsync(id);
-
-            if (meeting != null)
-            {
-                _context.Meetings.Remove(meeting);
-                await _context.SaveChangesAsync();
-
-                return Ok(meeting);
-            }
-            return NotFound();
-        }
-
-        [HttpDelete]
-        [Route("attachments/{attachmentId:guid}")]
+        [Route("{attachmentId:guid}")]
         public async Task<IActionResult> DeleteAttachmentByID([FromRoute] Guid attachmentId)
         {
             if (_context.Attachments.Any(i => i.AttachmentId.Equals(attachmentId)))
