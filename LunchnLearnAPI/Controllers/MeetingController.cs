@@ -32,15 +32,16 @@ namespace LunchnLearnAPI.Controllers
         [Route("{name}")]
         public async Task<IActionResult> GetMeetingByName([FromRoute] string name)
         {
-            if (_context.Meetings.Count(i => i.CreatorName.Contains(name)) > 0)
-            {
-                return Ok(
-                    await _context.Meetings
-                        .Where(meeting => meeting.CreatorName.Contains(name))
-                        .ToListAsync()
-                );
-            }
-            return NotFound();
+            return Ok(
+                await _context.Meetings
+                    .Where(
+                        meeting =>
+                            _context
+                                .FuzzySearch(meeting.CreatorName)
+                                .Contains(_context.FuzzySearch(name))
+                    )
+                    .ToListAsync()
+            );
         }
 
         // GET: api/Meeting/{id:guid}
