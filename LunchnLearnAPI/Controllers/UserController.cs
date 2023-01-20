@@ -36,13 +36,13 @@ namespace LunchnLearnAPI.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> AddUser(string authID, string firstName, string lastName)
+        public async Task<IActionResult> AddUser(Users user)
         {
             var userData = new Users()
             {
-                AuthID = authID,
-                FirstName = firstName,
-                LastName = lastName,
+                AuthID = user.AuthID,
+                FirstName = user.FirstName,
+                LastName = user.LastName,
             };
             await _context.Users.AddAsync(userData);
             await _context.SaveChangesAsync();
