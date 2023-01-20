@@ -95,11 +95,11 @@ namespace LunchnLearnAPI.Controllers
             var meeting = await _context.Meetings.FindAsync(id);
             if (meeting != null)
             {
-                meeting.MeetingStart = updateMeeting.MeetingStart;
-                meeting.MeetingEnd = updateMeeting.MeetingEnd;
-                meeting.CreatorName = updateMeeting.CreatorName;
-                meeting.Description = updateMeeting.Description;
-                meeting.Topic = updateMeeting.Topic;
+                meeting.MeetingStart = (updateMeeting.MeetingStart != null ? updateMeeting.MeetingStart : meeting.MeetingStart);
+                meeting.MeetingEnd = (updateMeeting.MeetingEnd != null ? updateMeeting.MeetingEnd : meeting.MeetingEnd);
+                meeting.CreatorName = (updateMeeting.CreatorName != null ? updateMeeting.CreatorName : meeting.CreatorName);
+                meeting.Description = (updateMeeting.Description != null ? updateMeeting.Description : meeting.Description);
+                meeting.Topic = (updateMeeting.Topic != null ? updateMeeting.Topic : meeting.Topic);
 
                 await _context.SaveChangesAsync();
 
