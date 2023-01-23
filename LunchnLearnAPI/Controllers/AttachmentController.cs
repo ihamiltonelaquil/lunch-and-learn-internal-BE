@@ -22,16 +22,16 @@ namespace LunchnLearnAPI.Controllers
         [Route("{meetingId:guid}")]
         public async Task<IActionResult> GetAttachments([FromRoute] Guid? meetingId)
         {
-            if (_context.Attachments.Any(i => i.Meeting.MeetingID.Equals(meetingId)))
-            {
+            //if (_context.Attachments.Any(i => i.Meeting.MeetingID.Equals(meetingId)))
+            //{
                 return Ok(
                     await _context.Attachments
                         .Include(i => i.Meeting)
                         .Where(attachment => attachment.Meeting.MeetingID.Equals(meetingId))
                         .ToListAsync()
                 );
-            }
-            return NotFound();
+            //}
+            //return NotFound();
         }
 
         [HttpGet]

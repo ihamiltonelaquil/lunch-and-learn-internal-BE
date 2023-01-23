@@ -48,14 +48,14 @@ namespace LunchnLearnAPI.Controllers
         // Adds a link to a specific meeting by ID
         [Route("/api/[controller]/{meetingID:guid}")]
         [HttpPost]
-        public async Task<IActionResult> AddLink([FromRoute] Guid meetingID, string linkURL)
+        public async Task<IActionResult> AddLink([FromRoute] Guid meetingID, string linkURL, string linkName)
         {
             Meeting meeting = await _context.Meetings.FindAsync(meetingID);
             if (meeting == null)
             {
                 return BadRequest("Invalid meeting!");
             }
-            var Link = new LinkContainer() { Link = linkURL, Meeting = meeting };
+            var Link = new LinkContainer() { Link = linkURL, Meeting = meeting, Name = linkName };
             await _context.Links.AddAsync(Link);
             await _context.SaveChangesAsync();
 

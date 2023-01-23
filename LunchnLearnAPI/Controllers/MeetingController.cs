@@ -3,6 +3,8 @@ using LunchnLearnAPI.Models.Domain;
 using LunchnLearnAPI.Models.Domain.Meetings;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.WindowsAzure.Storage.Blob;
+using Microsoft.WindowsAzure.Storage;
 
 namespace LunchnLearnAPI.Controllers
 {
@@ -118,6 +120,45 @@ namespace LunchnLearnAPI.Controllers
 
             if (meeting != null)
             {
+                var attachments = await _context.Attachments.Where(a => a.Meeting.MeetingID == id).ToListAsync();
+                if (attachments.Any())
+                {
+                    foreach (var attachment in attachments)
+                    {
+                        string connectionString = Globals.BLOB_CONNECTION_STRING;
+                        CloudStorageAccount storageAccount = CloudStorageAccount.Parse(connectionString);
+                        CloudBlobClient blobClient = storageAccount.CreateCloudBlobClient();
+
+                        string containerName = "attachments";
+                        CloudBlobContainer container = blobClient.GetContainerReference(containerName);
+
+                        CloudBlockBlob blockBlob = container.GetBlockBlobReference(attachment.BlobName);
+                        if (await blockBlob.ExistsAsync())
+                        {
+                            if (await blockBlob.DeleteIfExistsAsync())
+                            {
+                                _context.Attachments.Remove(attachment);
+                                await _context.SaveChangesAsync();
+                                continue;
+                            }
+                            else
+                                continue;
+                        }
+                        else
+                            continue;
+
+                    }
+                }
+
+                var links = await _context.Links.Where(a => a.Meeting.MeetingID == id).ToListAsync();
+                if (links.Any())
+                {
+                    foreach(var link in links)
+                    {
+                        _context.Links.Remove(link);
+                    }
+                }
+
                 _context.Meetings.Remove(meeting);
                 await _context.SaveChangesAsync();
 

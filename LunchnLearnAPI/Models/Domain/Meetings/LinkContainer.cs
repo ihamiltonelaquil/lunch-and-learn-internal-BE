@@ -7,6 +7,8 @@ namespace LunchnLearnAPI.Models.Domain
         [Key]
         public Guid LinkID { get; set; }
         public string Link { get; set; }
+
+        public string Name { get; set; }
         public Meeting Meeting { get; set; }
     }
 }
